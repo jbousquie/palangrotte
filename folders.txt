@@ -1,0 +1,2 @@
+/home/jerome/test/canary/
+/home/jerome/test/canary2/toto
