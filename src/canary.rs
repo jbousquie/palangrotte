@@ -1,5 +1,5 @@
 use crate::logger::log_message;
-use filetime::{set_file_mtime, FileTime};
+use filetime::{FileTime, set_file_mtime};
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
 use std::fs::{self, File};
 use std::io::{self, BufRead};
@@ -51,11 +51,7 @@ pub fn register_canary_folder(
                         has_files = true;
                         // Touch the file
                         if let Err(e) = set_file_mtime(&path, FileTime::now()) {
-                            log_message(&format!(
-                                "Failed to touch file {}: {}",
-                                path.display(),
-                                e
-                            ));
+                            log_message(&format!("Failed to touch file {}: {}", path.display(), e));
                         }
                     }
                 }
@@ -120,7 +116,7 @@ pub fn read_canary_folders<P: AsRef<Path>>(filename: P) -> io::Result<Vec<String
 ///
 /// * `foldername` - The name of the folder where the modification was detected.
 fn modification_detection(foldername: &str) {
-    println!("Modification detected in folder: {}", foldername);
+    println!("Modification detected in folder or file: {}", foldername);
 }
 
 pub fn handle_event(event: Event) {
