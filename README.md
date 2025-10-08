@@ -21,3 +21,9 @@ cargo run --bin palangrotte
 ```
 
 The application will then start monitoring the specified directories for changes. When a file in one of the monitored folders is modified, a message will be printed to the console indicating which file or folder was changed. All setup events and errors will be logged to the `plgrt.log` file.
+
+## Error Handling
+
+The application is designed to be robust. If it encounters an issue with a specific folder (e.g., a permissions error), it will log the problem in `plgrt.log` and continue trying to monitor the other folders listed in your configuration.
+
+However, if the application is unable to monitor *any* of the specified folders, it will consider this a critical failure. In this case, it will print an error message to the console, write a final entry to the log file, and then exit. This prevents the service from running silently without actually performing its monitoring duties.

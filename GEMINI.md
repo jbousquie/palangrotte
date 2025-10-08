@@ -42,6 +42,11 @@ The `register_canary_folder` function performs the following steps:
 3.  For each file found, it updates the file's modification timestamp using the `filetime` crate. This is done to create a baseline.
 4.  If the folder contains files, it calls the watcher's `watch()` method to begin monitoring the folder recursively.
 
+### Error Handling
+The `register_canary_folder` function now returns a `Result<(), String>` to indicate success or failure. The main loop in `palangrotte.rs` iterates through the folders and attempts to register each one. If a registration fails, the error is logged.
+
+A counter tracks the number of successful registrations. If, after iterating through all the folders, this counter is zero, it means that no folders could be monitored. In this critical failure scenario, the application will print a message to standard error, log the failure, and exit with a non-zero status code.
+
 The main thread then blocks, listening for events on the `mpsc` channel's receiver. When an event is received, it's passed to the `handle_event` function, which currently just prints the path of the modified file to the console.
 
 ## Security Considerations

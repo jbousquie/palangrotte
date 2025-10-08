@@ -2,6 +2,7 @@ use notify::{RecommendedWatcher, Watcher};
 use palangrotte::canary::{handle_event, read_canary_folders, register_canary_folder};
 use palangrotte::logger::log_message;
 use palangrotte::settings;
+use std::process;
 use std::sync::mpsc::channel;
 
 fn main() {
@@ -17,8 +18,10 @@ fn main() {
     ) {
         Ok(watcher) => watcher,
         Err(e) => {
-            log_message(&format!("Failed to create watcher: {}", e));
-            return;
+            let msg = format!("Failed to create watcher: {}", e);
+            log_message(&msg);
+            eprintln!("{}", msg);
+            process::exit(1);
         }
     };
 
@@ -27,8 +30,19 @@ fn main() {
         if folders.is_empty() {
             log_message(&format!("{} is empty.", settings::FOLDERS_FILE));
         } else {
+            let mut successful_registrations = 0;
             for folder in &folders {
-                register_canary_folder(folder, &mut watcher);
+                match register_canary_folder(folder, &mut watcher) {
+                    Ok(_) => successful_registrations += 1,
+                    Err(e) => log_message(&e),
+                }
+            }
+
+            if successful_registrations == 0 {
+                let msg = "No canary folders could be registered. Exiting.";
+                log_message(msg);
+                eprintln!("{}", msg);
+                process::exit(1);
             }
         }
     }
