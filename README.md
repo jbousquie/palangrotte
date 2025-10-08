@@ -1,11 +1,23 @@
-##Palangrotte
+# Palangrotte
 
 This is a simple daemon that monitors a series of directories containing canary files for changes. When changes are detected, it sends notifications to a specified service, logs the event, displays a message to the possible opened sessions and forces the system to shut down.
 The project is intended to be used in a production environment on Windows, although it can also be used on Linux. It's designed to be run as a service.
 It uses the crate `notify` for file system event monitoring.
 
-The directories to be monitored are specified in a directory file, for now uncrypted.
-If a directory doesn't exist, it will be created.
-If a directory is empty, it will be filled with some canary files.
-If a directory is not readable, it will be skipped and logged.
-If a directory is not writable, it will be skipped and logged.
+## Configuration
+
+The directories to be monitored are specified in the `folders.txt` file. Each line in this file should contain the absolute path to a directory that you want to monitor.
+
+If a directory specified in `folders.txt` doesn't exist, the application will create it.
+If a directory is empty, the application will populate it with canary files.
+If a directory is not readable or writable, it will be skipped, and an error will be logged in `plgrt.log`.
+
+## Usage
+
+To use the application, you first need to configure the `folders.txt` file with the directories you want to monitor. Once you have configured the folders, you can run the application using the following command:
+
+```bash
+cargo run --bin palangrotte
+```
+
+The application will then start monitoring the specified directories for changes. When a file in one of the monitored folders is modified, a message will be printed to the console indicating which file or folder was changed. All setup events and errors will be logged to the `plgrt.log` file.
