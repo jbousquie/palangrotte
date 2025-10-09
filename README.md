@@ -1,7 +1,10 @@
 # Palangrotte
 
-This is a simple daemon that monitors a series of directories containing canary files for changes. When changes are detected, it sends notifications to a specified service, logs the event, displays a message to the possible opened sessions and forces the system to shut down.
-The project is intended to be used in a production environment on Windows, although it can also be used on Linux. It's designed to be run as a service.
+_work in progress, no submission accepted for now_
+
+This is a simple daemon that monitors a series of directories containing canary files for changes.
+When changes are detected, it sends notifications to a specified service, logs the event, displays a message to the possible opened sessions and forces the system to shut down.
+The project is intended to be used in a production environment on Windows, although it can also be used on Linux. It's designed to be run as a service and to work in the user-space.
 It uses the crate `notify` for file system event monitoring.
 
 ## Configuration
