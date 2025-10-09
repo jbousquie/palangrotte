@@ -1,29 +1,84 @@
-use std::env;
+use palangrotte::encryption::{encrypt_file, decrypt_file, EncryptedFile, PBKDF2_SALT_LEN};
+use ring::aead::NONCE_LEN;
 use std::fs;
-use std::process;
+use std::io::{Read, Write};
+use std::env;
+use std::path::Path;
 
-fn main() {
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
+
+// --- Main function for the command-line tool ---
+fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
-
-    if args.len() != 2 {
-        eprintln!("Usage: {} <file_to_encrypt>", args[0]);
-        process::exit(1);
+    if args.len() != 4 {
+        eprintln!("Usage: {} <encrypt|decrypt> <input_file> <output_file>", args[0]);
+        return Ok(());
     }
 
-    let filename = &args[1];
+    let command = &args[1];
+    let input_path = &args[2];
+    let output_path = &args[3];
 
-    match fs::read_to_string(filename) {
-        Ok(content) => {
-            if content.is_empty() {
-                println!("The file '{}' is empty.", filename);
-            } else {
-                println!("Successfully read file '{}'.", filename);
-                // Encryption logic will go here in the future.
+    if !Path::new(input_path).exists() {
+        eprintln!("Error: Input file '{}' does not exist.", input_path);
+        return Ok(());
+    }
+
+    match command.as_str() {
+        "encrypt" => {
+            let password = rpassword::prompt_password("Enter password: ")?;
+            let password_confirm = rpassword::prompt_password("Confirm password: ")?;
+
+            if password != password_confirm {
+                eprintln!("Passwords do not match.");
+                return Ok(());
+            }
+
+            let plaintext = fs::read(input_path)?;
+            match encrypt_file(&plaintext, &password) {
+                Ok(enc_data) => {
+                    let mut file = fs::File::create(output_path)?;
+                    file.write_all(&enc_data.salt)?;
+                    file.write_all(&enc_data.nonce)?;
+                    file.write_all(&enc_data.ciphertext_with_tag)?;
+                    println!("File encrypted successfully to: {}", output_path);
+                }
+                Err(_) => {
+                    eprintln!("Error during file encryption.");
+                }
             }
         }
-        Err(e) => {
-            eprintln!("Error reading file '{}': {}", filename, e);
-            process::exit(1);
+        "decrypt" => {
+            let password = rpassword::prompt_password("Enter password: ")?;
+            let mut encrypted_file = fs::File::open(input_path)?;
+            let mut salt = [0u8; PBKDF2_SALT_LEN];
+            encrypted_file.read_exact(&mut salt)?;
+            let mut nonce = [0u8; NONCE_LEN];
+            encrypted_file.read_exact(&mut nonce)?;
+            let mut ciphertext_with_tag = Vec::new();
+            encrypted_file.read_to_end(&mut ciphertext_with_tag)?;
+
+            let read_enc_data = EncryptedFile {
+                salt,
+                nonce,
+                ciphertext_with_tag,
+            };
+
+            match decrypt_file(read_enc_data, &password) {
+                Ok(decrypted) => {
+                    fs::write(output_path, decrypted)?;
+                    println!("File decrypted successfully to: {}", output_path);
+                }
+                Err(_) => {
+                    eprintln!("Error during file decryption. Incorrect password or corrupted data.");
+                }
+            }
+        }
+        _ => {
+            eprintln!("Invalid command. Use 'encrypt' or 'decrypt'.");
         }
     }
+
+    Ok(())
 }

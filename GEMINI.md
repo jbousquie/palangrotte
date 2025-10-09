@@ -28,7 +28,7 @@ The project is organized as a Cargo workspace with a library crate and multiple 
 
 *   **Binaries (`src/bin/`)**:
     *   `palangrotte.rs`: The main daemon application. Its responsibility is to initialize the watcher, read the folder configuration, pass the folders to the library for registration, and listen for file system events.
-    *   `encrypter.rs`: A placeholder for a future utility to encrypt the `folders.txt` file.
+    *   `encrypter.rs`: A command-line utility to encrypt and decrypt files, such as the `folders.txt` configuration file. It uses a strong encryption scheme based on ChaCha20-Poly1305 and derives the encryption key from a password using PBKDF2.
 
 ## Core Implementation
 
