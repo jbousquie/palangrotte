@@ -1,8 +1,7 @@
 use crate::logger::log_message;
 use filetime::{FileTime, set_file_mtime};
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
-use std::fs::{self, File};
-use std::io::{self, BufRead};
+use std::fs;
 use std::path::Path;
 
 /// Registers a canary folder for monitoring.
@@ -90,25 +89,7 @@ fn create_canary_files(folder_path: &str) {
     ));
 }
 
-/// Reads the canary folders from the given file.
-///
-/// # Arguments
-///
-/// * `filename` - The path to the file containing the folder paths.
-///
-/// # Returns
-///
-/// * `Ok(Vec<String>)` - A vector of folder paths.
-/// * `Err(io::Error)` - An error if the file could not be read.
-pub fn read_canary_folders<P: AsRef<Path>>(filename: P) -> io::Result<Vec<String>> {
-    let file = File::open(filename)?;
-    let reader = io::BufReader::new(file);
-    let mut folders = Vec::new();
-    for line in reader.lines() {
-        folders.push(line?);
-    }
-    Ok(folders)
-}
+
 
 /// Called when a modification is detected in a monitored folder.
 ///

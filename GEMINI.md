@@ -25,16 +25,17 @@ The project is organized as a Cargo workspace with a library crate and multiple 
     *   `src/canary.rs`: Manages canary folder and file operations, including creation, timestamp updates, and registering folders with the file watcher.
     *   `src/logger.rs`: Provides a simple logging function to write messages to the log file.
     *   `src/settings.rs`: Defines constants for configuration, like file names.
+    *   `src/encryption.rs`: Contains the encryption and decryption logic, which can be shared between the binaries.
 
 *   **Binaries (`src/bin/`)**:
-    *   `palangrotte.rs`: The main daemon application. Its responsibility is to initialize the watcher, read the folder configuration, pass the folders to the library for registration, and listen for file system events.
+    *   `palangrotte.rs`: The main daemon application. Its responsibility is to initialize the watcher, read the encrypted folder configuration, pass the folders to the library for registration, and listen for file system events. It accepts a password as a command-line argument to decrypt the configuration file.
     *   `encrypter.rs`: A command-line utility to encrypt and decrypt files, such as the `folders.txt` configuration file. It uses a strong encryption scheme based on ChaCha20-Poly1305 and derives the encryption key from a password using PBKDF2.
 
 ## Core Implementation
 
 The `palangrotte` binary initializes a `RecommendedWatcher` from the `notify` crate. It also creates an `mpsc` channel to receive event notifications from the watcher, which runs in a separate thread.
 
-The `main` function reads the list of folders from `folders.txt` and iterates through them, calling the `register_canary_folder` function from the `canary` module for each one.
+The `main` function takes a password as a command-line argument and calls the `read_canary_folders` function to read and decrypt the `folders.enc` file. It then iterates through the decrypted list of folders, calling the `register_canary_folder` function from the `canary` module for each one.
 
 The `register_canary_folder` function performs the following steps:
 1.  Checks if a folder exists. If not, it creates it.

@@ -1,11 +1,45 @@
 use notify::{RecommendedWatcher, Watcher};
-use palangrotte::canary::{handle_event, read_canary_folders, register_canary_folder};
+use palangrotte::canary::{handle_event, register_canary_folder};
 use palangrotte::logger::log_message;
 use palangrotte::settings;
+use palangrotte::encryption::{decrypt_file, EncryptedFile, PBKDF2_SALT_LEN};
+use ring::aead::NONCE_LEN;
+use std::fs;
+use std::io::Read;
 use std::process;
 use std::sync::mpsc::channel;
+use std::env;
+
+fn read_canary_folders(password: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    let mut encrypted_file = fs::File::open(settings::FOLDERS_FILE)?;
+    let mut salt = [0u8; PBKDF2_SALT_LEN];
+    encrypted_file.read_exact(&mut salt)?;
+    let mut nonce = [0u8; NONCE_LEN];
+    encrypted_file.read_exact(&mut nonce)?;
+    let mut ciphertext_with_tag = Vec::new();
+    encrypted_file.read_to_end(&mut ciphertext_with_tag)?;
+
+    let read_enc_data = EncryptedFile {
+        salt,
+        nonce,
+        ciphertext_with_tag,
+    };
+
+    let decrypted_data = decrypt_file(read_enc_data, password)
+        .map_err(|_| "Failed to decrypt folders file. Incorrect password or corrupted data.")?;
+
+    let decrypted_string = String::from_utf8(decrypted_data)?;
+    Ok(decrypted_string.lines().map(String::from).collect())
+}
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 2 {
+        eprintln!("Usage: {} <password>", args[0]);
+        process::exit(1);
+    }
+    let password = &args[1];
+
     let (tx, rx) = channel();
 
     let mut watcher: RecommendedWatcher = match Watcher::new(
@@ -25,25 +59,35 @@ fn main() {
         }
     };
 
-    let folders = read_canary_folders(settings::FOLDERS_FILE);
-    if let Ok(folders) = folders {
-        if folders.is_empty() {
-            log_message(&format!("{} is empty.", settings::FOLDERS_FILE));
-        } else {
-            let mut successful_registrations = 0;
-            for folder in &folders {
-                match register_canary_folder(folder, &mut watcher) {
-                    Ok(_) => successful_registrations += 1,
-                    Err(e) => log_message(&e),
+    match read_canary_folders(password) {
+        Ok(folders) => {
+            if folders.is_empty() {
+                log_message(&format!("{} is empty.", settings::FOLDERS_FILE));
+            } else {
+                let mut successful_registrations = 0;
+                for folder in &folders {
+                    match register_canary_folder(folder, &mut watcher) {
+                        Ok(_) => {
+                            successful_registrations += 1;
+                            println!("Registered folder for monitoring: {}", folder);
+                        }
+                        Err(e) => log_message(&e),
+                    }
+                }
+
+                if successful_registrations == 0 {
+                    let msg = "No canary folders could be registered. Exiting.";
+                    log_message(msg);
+                    eprintln!("{}", msg);
+                    process::exit(1);
                 }
             }
-
-            if successful_registrations == 0 {
-                let msg = "No canary folders could be registered. Exiting.";
-                log_message(msg);
-                eprintln!("{}", msg);
-                process::exit(1);
-            }
+        }
+        Err(e) => {
+            let msg = format!("Failed to read canary folders: {}", e);
+            log_message(&msg);
+            eprintln!("{}", msg);
+            process::exit(1);
         }
     }
 

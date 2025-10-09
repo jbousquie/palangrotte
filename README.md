@@ -6,18 +6,24 @@ It uses the crate `notify` for file system event monitoring.
 
 ## Configuration
 
-The directories to be monitored are specified in the `folders.txt` file. Each line in this file should contain the absolute path to a directory that you want to monitor.
+The directories to be monitored are specified in an encrypted file named `folders.enc`. You can create and encrypt this file using the `encrypter` utility.
 
-If a directory specified in `folders.txt` doesn't exist, the application will create it.
+First, create a plain text file (e.g., `folders.txt`) with the absolute path of each directory you want to monitor on a new line. Then, use the `encrypter` to encrypt it:
+
+```bash
+cargo run --bin encrypter encrypt folders.txt folders.enc
+```
+
+If a directory specified in `folders.enc` doesn't exist, the application will create it.
 If a directory is empty, the application will populate it with canary files.
 If a directory is not readable or writable, it will be skipped, and an error will be logged in `plgrt.log`.
 
 ## Usage
 
-To use the application, you first need to configure the `folders.txt` file with the directories you want to monitor. Once you have configured the folders, you can run the application using the following command:
+To use the application, you first need to create the encrypted `folders.enc` file. Once you have the encrypted configuration file, you can run the application using the following command, providing the password as a command-line argument:
 
 ```bash
-cargo run --bin palangrotte
+cargo run --bin palangrotte <password>
 ```
 
 The application will then start monitoring the specified directories for changes. When a file in one of the monitored folders is modified, a message will be printed to the console indicating which file or folder was changed. All setup events and errors will be logged to the `plgrt.log` file.
@@ -27,3 +33,27 @@ The application will then start monitoring the specified directories for changes
 The application is designed to be robust. If it encounters an issue with a specific folder (e.g., a permissions error), it will log the problem in `plgrt.log` and continue trying to monitor the other folders listed in your configuration.
 
 However, if the application is unable to monitor *any* of the specified folders, it will consider this a critical failure. In this case, it will print an error message to the console, write a final entry to the log file, and then exit. This prevents the service from running silently without actually performing its monitoring duties.
+
+## Encryption Utility
+
+The project includes a command-line utility for encrypting and decrypting files, which can be used to protect sensitive configuration files like `folders.txt`. The tool uses ChaCha20-Poly1305 for encryption and derives a key from a user-provided password using PBKDF2.
+
+### Usage
+
+To use the encryption utility, run the `encrypter` binary with one of the following commands:
+
+**To encrypt a file:**
+
+```bash
+cargo run --bin encrypter encrypt <input_file> <output_file>
+```
+
+The tool will prompt you to enter and confirm a password.
+
+**To decrypt a file:**
+
+```bash
+cargo run --bin encrypter decrypt <input_file> <output_file>
+```
+
+The tool will prompt you for the password to decrypt the file.
