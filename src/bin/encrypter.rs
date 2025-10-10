@@ -1,3 +1,7 @@
+//! # Encrypter Utility
+//! This binary provides a command-line utility for encrypting and decrypting files.
+//! It uses the encryption functions from the `palangrotte` library.
+
 use palangrotte::encryption::{encrypt_file, decrypt_file, EncryptedFile, PBKDF2_SALT_LEN};
 use ring::aead::NONCE_LEN;
 use std::fs;
@@ -8,7 +12,21 @@ use std::path::Path;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 
-// --- Main function for the command-line tool ---
+/// The main function for the encrypter utility.
+///
+/// This function parses command-line arguments to determine whether to encrypt or decrypt a file.
+/// It prompts the user for a password and then performs the requested operation.
+///
+/// # Arguments
+///
+/// * `<encrypt|decrypt>` - The command to perform.
+/// * `<input_file>` - The path to the input file.
+/// * `<output_file>` - The path to the output file.
+///
+/// # Returns
+///
+/// * `Ok(())` - If the operation was successful.
+/// * `Err(Box<dyn std::error::Error>)` - If there was an error.
 fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() != 4 {

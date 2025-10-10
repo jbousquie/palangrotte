@@ -1,16 +1,18 @@
-use ring::{
-    aead::{self, Nonce, UnboundKey, LessSafeKey, CHACHA20_POLY1305, NONCE_LEN},
-    error::Unspecified,
-    pbkdf2,
-    rand::{SecureRandom, SystemRandom},
-};
+//! # Encryption Module
+//! This module provides functions for encrypting and decrypting files using ChaCha20-Poly1305
+//! and PBKDF2 for key derivation.
+
+use ring::{aead::{self, Nonce, UnboundKey, LessSafeKey, CHACHA20_POLY1305, NONCE_LEN}, error::Unspecified, pbkdf2, rand::{SecureRandom, SystemRandom}};
 use std::num::NonZeroU32;
 
 // --- Cryptographic Constants ---
+
+/// The number of iterations for PBKDF2.
 pub const PBKDF2_ITERATIONS: u32 = 100_000;
+/// The length of the salt for PBKDF2 in bytes.
 pub const PBKDF2_SALT_LEN: usize = 16;
 
-// Data structure to save: Salt + Nonce + Ciphertext (including Tag)
+/// Data structure to save: Salt + Nonce + Ciphertext (including Tag)
 #[derive(Debug)]
 pub struct EncryptedFile {
     pub salt: [u8; PBKDF2_SALT_LEN],
@@ -21,6 +23,16 @@ pub struct EncryptedFile {
 // --- Encryption and Decryption Functions ---
 
 /// Encrypts the content of a file using a password.
+///
+/// # Arguments
+///
+/// * `plaintext` - The data to encrypt.
+/// * `password` - The password to use for encryption.
+///
+/// # Returns
+///
+/// * `Ok(EncryptedFile)` - The encrypted data, including the salt, nonce, and ciphertext with tag.
+/// * `Err(Unspecified)` - If there was an error during encryption.
 pub fn encrypt_file(plaintext: &[u8], password: &str) -> std::result::Result<EncryptedFile, Unspecified> {
     let rng = SystemRandom::new();
     let mut salt = [0u8; PBKDF2_SALT_LEN];
@@ -50,6 +62,16 @@ pub fn encrypt_file(plaintext: &[u8], password: &str) -> std::result::Result<Enc
 }
 
 /// Decrypts an encrypted file using the password.
+///
+/// # Arguments
+///
+/// * `encrypted_file` - The encrypted data to decrypt.
+/// * `password` - The password to use for decryption.
+///
+/// # Returns
+///
+/// * `Ok(Vec<u8>)` - The decrypted data.
+/// * `Err(Unspecified)` - If there was an error during decryption (e.g., incorrect password or corrupted data).
 pub fn decrypt_file(encrypted_file: EncryptedFile, password: &str) -> std::result::Result<Vec<u8>, Unspecified> {
     let salt = encrypted_file.salt;
     let nonce_bytes = encrypted_file.nonce;
@@ -70,7 +92,16 @@ pub fn decrypt_file(encrypted_file: EncryptedFile, password: &str) -> std::resul
     Ok(decrypted_data.to_vec())
 }
 
-// Utility function for PBKDF2 key derivation
+/// Derives a key from a password and salt using PBKDF2.
+///
+/// # Arguments
+///
+/// * `password` - The password to use for key derivation.
+/// * `salt` - The salt to use for key derivation.
+///
+/// # Returns
+///
+/// * `Vec<u8>` - The derived key.
 fn pbkdf2_derive_key(password: &str, salt: &[u8]) -> Vec<u8> {
     let mut key_bytes = vec![0u8; CHACHA20_POLY1305.key_len()];
     pbkdf2::derive(

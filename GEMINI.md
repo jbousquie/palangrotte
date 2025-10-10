@@ -6,6 +6,7 @@ Each time I add or modify a function, I add initial comments explaining the purp
 Each time I add a feature or modify an existing one or each time I refactor code, I ensure that the code remains well-organized and easy to understand and I update GEMINI.md and possibly README.md.
 
 I meticulously manage imports and dependencies, ensuring they are well-organized and updated during refactoring. If new dependencies are needed, I propose adding them to Cargo.toml and verify compatibility. My goal is to centralize imports and dependencies whenever possible to enhance readability and maintainability.
+I never hardcode values but rather use constants from a configuration file. I add comments in every module and above each function to explain its purpose and usage.
 
 # Project: Canary File Monitor
 
@@ -24,8 +25,9 @@ The project is organized as a Cargo workspace with a library crate and multiple 
 *   **Library (`src/lib.rs`)**: This is the core of the project, containing all the shared logic.
     *   `src/canary.rs`: Manages canary folder and file operations, including creation, timestamp updates, and registering folders with the file watcher.
     *   `src/logger.rs`: Provides a simple logging function to write messages to the log file.
-    *   `src/settings.rs`: Defines constants for configuration, like file names.
+    *   `src/settings.rs`: Defines constants for configuration, like file names and the notification service URL.
     *   `src/encryption.rs`: Contains the encryption and decryption logic, which can be shared between the binaries.
+    *   `src/notify.rs`: Contains the logic for sending notifications to a remote service.
 
 *   **Binaries (`src/bin/`)**:
     *   `palangrotte.rs`: The main daemon application. Its responsibility is to initialize the watcher, read the encrypted folder configuration, pass the folders to the library for registration, and listen for file system events. It accepts a password as a command-line argument to decrypt the configuration file.
@@ -35,7 +37,7 @@ The project is organized as a Cargo workspace with a library crate and multiple 
 
 The `palangrotte` binary initializes a `RecommendedWatcher` from the `notify` crate. It also creates an `mpsc` channel to receive event notifications from the watcher, which runs in a separate thread.
 
-The `main` function takes a password as a command-line argument and calls the `read_canary_folders` function to read and decrypt the `folders.enc` file. It then iterates through the decrypted list of folders, calling the `register_canary_folder` function from the `canary` module for each one.
+The `main` function is asynchronous, using the `tokio` runtime. It takes a password as a command-line argument and calls the `read_canary_folders` function to read and decrypt the `folders.enc` file. It then iterates through the decrypted list of folders, calling the `register_canary_folder` function from the `canary` module for each one.
 
 The `register_canary_folder` function performs the following steps:
 1.  Checks if a folder exists. If not, it creates it.
@@ -48,7 +50,7 @@ The `register_canary_folder` function now returns a `Result<(), String>` to indi
 
 A counter tracks the number of successful registrations. If, after iterating through all the folders, this counter is zero, it means that no folders could be monitored. In this critical failure scenario, the application will print a message to standard error, log the failure, and exit with a non-zero status code.
 
-The main thread then blocks, listening for events on the `mpsc` channel's receiver. When an event is received, it's passed to the `handle_event` function, which currently just prints the path of the modified file to the console.
+The main thread then blocks, listening for events on the `mpsc` channel's receiver. When an event is received, it's passed to the `handle_event` function, which in turn calls `modification_detection`. This function sends a notification to a remote service using an asynchronous HTTP POST request.
 
 ## Security Considerations
 

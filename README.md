@@ -29,7 +29,7 @@ To use the application, you first need to create the encrypted `folders.enc` fil
 cargo run --bin palangrotte <password>
 ```
 
-The application will then start monitoring the specified directories for changes. When a file in one of the monitored folders is modified, a message will be printed to the console indicating which file or folder was changed. All setup events and errors will be logged to the `plgrt.log` file.
+The application will then start monitoring the specified directories for changes. When a file in one of the monitored folders is modified, a message will be printed to the console, and a notification will be sent to the configured remote service. All setup events and errors will be logged to the `plgrt.log` file.
 
 ## Error Handling
 

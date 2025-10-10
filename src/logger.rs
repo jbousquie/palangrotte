@@ -1,3 +1,6 @@
+//! # Logger Module
+//! This module provides a simple logging function to write messages to the log file.
+
 use chrono::Local;
 use crate::settings;
 use std::fs::OpenOptions;

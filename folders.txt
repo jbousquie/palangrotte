@@ -1,2 +1,3 @@
-/home/jerome/test/canary/
+/home/jerome/test/canary/toto
+/home/jerome/test/canary/titi
 /home/jerome/test/canary2/toto

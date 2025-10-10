@@ -1,3 +1,7 @@
+//! # Palangrotte Daemon
+//! This is the main binary for the canary file monitoring daemon.
+//! It initializes the watcher, reads the encrypted folder configuration, and listens for file system events.
+
 use notify::{RecommendedWatcher, Watcher};
 use palangrotte::canary::{handle_event, register_canary_folder};
 use palangrotte::logger::log_message;
@@ -10,6 +14,16 @@ use std::process;
 use std::sync::mpsc::channel;
 use std::env;
 
+/// Reads and decrypts the canary folders file.
+///
+/// # Arguments
+///
+/// * `password` - The password to decrypt the file.
+///
+/// # Returns
+///
+/// * `Ok(Vec<String>)` - A vector of folder paths.
+/// * `Err(Box<dyn std::error::Error>)` - If there was an error reading or decrypting the file.
 fn read_canary_folders(password: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
     let mut encrypted_file = fs::File::open(settings::FOLDERS_FILE)?;
     let mut salt = [0u8; PBKDF2_SALT_LEN];
@@ -32,7 +46,12 @@ fn read_canary_folders(password: &str) -> Result<Vec<String>, Box<dyn std::error
     Ok(decrypted_string.lines().map(String::from).collect())
 }
 
-fn main() {
+/// The main function for the palangrotte daemon.
+///
+/// This function initializes the watcher, reads the encrypted folder configuration,
+/// registers the folders for monitoring, and then enters a loop to handle file system events.
+#[tokio::main]
+async fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
         eprintln!("Usage: {} <password>", args[0]);
@@ -93,6 +112,6 @@ fn main() {
 
     // The receiver will block the main thread until a message is received
     for event in rx {
-        handle_event(event);
+        handle_event(event).await;
     }
 }

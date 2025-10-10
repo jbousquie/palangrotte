@@ -25,3 +25,71 @@ Folder /home/jerome/test/canary2/toto is empty. Canary files will be created.
 [2025-10-09 15:22:33] Folder /home/jerome/test/canary2/toto is empty. Canary files will be created.
 [2025-10-09 15:23:28] Started monitoring folder /home/jerome/test/canary/.
 [2025-10-09 15:23:28] Started monitoring folder /home/jerome/test/canary2/toto.
+[2025-10-10 10:31:24] Started monitoring folder /home/jerome/test/canary/.
+[2025-10-10 10:31:24] Folder /home/jerome/test/canary/toto created successfully.
+[2025-10-10 10:31:24] Folder /home/jerome/test/canary/toto is empty. Canary files will be created.
+[2025-10-10 10:31:24] Folder /home/jerome/test/canary/titi created successfully.
+[2025-10-10 10:31:24] Folder /home/jerome/test/canary/titi is empty. Canary files will be created.
+[2025-10-10 10:31:24] Started monitoring folder /home/jerome/test/canary2/toto.
+[2025-10-10 10:31:24] Failed to send notification for file: /home/jerome/test/canary/toto. Status: 404 Not Found
+[2025-10-10 10:31:24] Failed to send notification for file: /home/jerome/test/canary/toto. Status: 404 Not Found
+[2025-10-10 10:31:24] Failed to send notification for file: /home/jerome/test/canary/titi. Status: 404 Not Found
+[2025-10-10 10:31:24] Failed to send notification for file: /home/jerome/test/canary/titi. Status: 404 Not Found
+[2025-10-10 10:31:55] Failed to send notification for file: /home/jerome/test/canary/toto. Status: 404 Not Found
+[2025-10-10 10:31:55] Failed to send notification for file: /home/jerome/test/canary/toto. Status: 404 Not Found
+[2025-10-10 10:32:00] Failed to send notification for file: /home/jerome/test/canary/titi. Status: 404 Not Found
+[2025-10-10 10:32:00] Failed to send notification for file: /home/jerome/test/canary/titi. Status: 404 Not Found
+[2025-10-10 10:32:20] Failed to send notification for file: /home/jerome/test/canary2/toto. Status: 404 Not Found
+[2025-10-10 10:33:31] Folder /home/jerome/test/canary/toto created successfully.
+[2025-10-10 10:33:31] Folder /home/jerome/test/canary/toto is empty. Canary files will be created.
+[2025-10-10 10:33:31] Folder /home/jerome/test/canary/titi created successfully.
+[2025-10-10 10:33:31] Folder /home/jerome/test/canary/titi is empty. Canary files will be created.
+[2025-10-10 10:33:31] Started monitoring folder /home/jerome/test/canary2/toto.
+[2025-10-10 10:33:40] Failed to send notification for file: /home/jerome/test/canary2/toto. Status: 404 Not Found
+[2025-10-10 10:34:45] Started monitoring folder /home/jerome/test/canary/toto.
+[2025-10-10 10:34:45] Folder /home/jerome/test/canary/titi is empty. Canary files will be created.
+[2025-10-10 10:34:45] Started monitoring folder /home/jerome/test/canary2/toto.
+[2025-10-10 10:34:49] Failed to send notification for file: /home/jerome/test/canary/toto/tutu.txt. Status: 404 Not Found
+[2025-10-10 10:34:49] Failed to send notification for file: /home/jerome/test/canary/toto/tutu.txt. Status: 404 Not Found
+[2025-10-10 10:34:49] Failed to send notification for file: /home/jerome/test/canary/toto/tutu.txt. Status: 404 Not Found
+[2025-10-10 10:51:23] Started monitoring folder /home/jerome/test/canary/toto.
+[2025-10-10 10:51:23] Created 5 canary files in /home/jerome/test/canary/titi.
+[2025-10-10 10:51:23] Started monitoring folder /home/jerome/test/canary2/toto.
+[2025-10-10 10:51:31] Failed to send notification for file: /home/jerome/test/canary/toto. Status: 404 Not Found
+[2025-10-10 10:52:58] Failed to send notification for file: /home/jerome/test/canary/toto. Status: 404 Not Found
+[2025-10-10 10:53:13] Failed to send notification for file: /home/jerome/test/canary/toto/tutu.txt. Status: 404 Not Found
+[2025-10-10 10:53:24] Created 5 canary files in /home/jerome/test/canary/toto.
+[2025-10-10 10:53:24] Started monitoring folder /home/jerome/test/canary/titi.
+[2025-10-10 10:53:24] Started monitoring folder /home/jerome/test/canary2/toto.
+[2025-10-10 10:55:09] Failed to send notification for file: /home/jerome/test/canary2/toto. Status: 404 Not Found
+[2025-10-10 10:55:33] Started monitoring folder /home/jerome/test/canary/toto.
+[2025-10-10 10:55:33] Started monitoring folder /home/jerome/test/canary/titi.
+[2025-10-10 10:55:33] Started monitoring folder /home/jerome/test/canary2/toto.
+[2025-10-10 10:55:40] Failed to send notification for file: /home/jerome/test/canary/toto/passwords.jpg. Status: 404 Not Found
+[2025-10-10 10:55:40] Failed to send notification for file: /home/jerome/test/canary/toto/passwords.jpg. Status: 404 Not Found
+[2025-10-10 10:55:40] Failed to send notification for file: /home/jerome/test/canary/toto/passwords.jpg. Status: 404 Not Found
+[2025-10-10 11:03:06] Started monitoring folder /home/jerome/test/canary/toto.
+[2025-10-10 11:03:06] Started monitoring folder /home/jerome/test/canary/titi.
+[2025-10-10 11:03:06] Started monitoring folder /home/jerome/test/canary2/toto.
+[2025-10-10 11:03:14] Failed to send notification for file: /home/jerome/test/canary/toto/passwords.jpg. Status: 404 Not Found
+[2025-10-10 11:03:14] Failed to send notification for file: /home/jerome/test/canary/toto/passwords.jpg. Status: 404 Not Found
+[2025-10-10 11:03:14] Failed to send notification for file: /home/jerome/test/canary/toto/passwords.jpg. Status: 404 Not Found
+[2025-10-10 11:03:25] Failed to send notification for file: /home/jerome/test/canary/titi. Status: 404 Not Found
+[2025-10-10 11:03:55] Failed to send notification for file: /home/jerome/test/canary/titi. Status: 404 Not Found
+[2025-10-10 11:04:08] Failed to send notification for file: /home/jerome/test/canary/titi. Status: 404 Not Found
+[2025-10-10 11:04:22] Failed to send notification for file: /home/jerome/test/canary/titi/secret.docx. Status: 404 Not Found
+[2025-10-10 11:04:22] Failed to send notification for file: /home/jerome/test/canary/titi/confidentiel.txt. Status: 404 Not Found
+[2025-10-10 11:04:22] Failed to send notification for file: /home/jerome/test/canary/titi. Status: 404 Not Found
+[2025-10-10 11:04:22] Failed to send notification for file: /home/jerome/test/canary/titi/budget.txt. Status: 404 Not Found
+[2025-10-10 11:04:22] Failed to send notification for file: /home/jerome/test/canary/titi/groupes.pdf. Status: 404 Not Found
+[2025-10-10 11:04:22] Failed to send notification for file: /home/jerome/test/canary/titi/profils.png. Status: 404 Not Found
+[2025-10-10 11:04:33] Started monitoring folder /home/jerome/test/canary/toto.
+[2025-10-10 11:04:33] Created 2 canary files in /home/jerome/test/canary/titi.
+[2025-10-10 11:04:33] Started monitoring folder /home/jerome/test/canary/titi.
+[2025-10-10 11:04:33] Started monitoring folder /home/jerome/test/canary2/toto.
+[2025-10-10 11:04:40] Failed to send notification for file: /home/jerome/test/canary/titi. Status: 404 Not Found
+[2025-10-10 11:04:53] Failed to send notification for file: /home/jerome/test/canary/titi. Status: 404 Not Found
+[2025-10-10 11:04:56] Failed to send notification for file: /home/jerome/test/canary/titi. Status: 404 Not Found
+[2025-10-10 11:04:57] Failed to send notification for file: /home/jerome/test/canary/titi/profils.png. Status: 404 Not Found
+[2025-10-10 11:04:57] Failed to send notification for file: /home/jerome/test/canary/titi/profils.png. Status: 404 Not Found
+[2025-10-10 11:04:57] Failed to send notification for file: /home/jerome/test/canary/titi/profils.png. Status: 404 Not Found

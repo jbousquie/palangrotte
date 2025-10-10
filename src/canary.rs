@@ -1,7 +1,15 @@
+//! # Canary Module
+//! This module manages canary folder and file operations, including creation, timestamp updates,
+//! and registering folders with the file watcher.
+
 use crate::logger::log_message;
+use crate::notify::notify_service;
+use crate::settings;
 use filetime::{FileTime, set_file_mtime};
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
-use std::fs;
+use rand::Rng;
+use std::fs::{self, File};
+use std::io::Write;
 use std::path::Path;
 
 /// Registers a canary folder for monitoring.
@@ -57,19 +65,17 @@ pub fn register_canary_folder(
             }
             if !has_files {
                 create_canary_files(folder_path);
-                Ok(()) // Folder is empty, ready for canary files.
-            } else {
-                // If there are files, start monitoring
-                match watcher.watch(path, RecursiveMode::Recursive) {
-                    Ok(_) => {
-                        log_message(&format!("Started monitoring folder {}.", folder_path));
-                        Ok(())
-                    }
-                    Err(e) => Err(format!(
-                        "Failed to start monitoring folder {}: {}",
-                        folder_path, e
-                    )),
+            }
+            // Now there are files, start monitoring
+            match watcher.watch(path, RecursiveMode::Recursive) {
+                Ok(_) => {
+                    log_message(&format!("Started monitoring folder {}.", folder_path));
+                    Ok(())
                 }
+                Err(e) => Err(format!(
+                    "Failed to start monitoring folder {}: {}",
+                    folder_path, e
+                )),
             }
         }
         Err(e) => Err(format!("Failed to read directory {}: {}", folder_path, e)),
@@ -78,32 +84,80 @@ pub fn register_canary_folder(
 
 /// Creates canary files in the given folder.
 ///
+/// This function creates a random number of files (between 2 and 5) with random names and extensions.
+/// The files are filled with random data to have a size between 12 KB and 120 KB.
+///
 /// # Arguments
 ///
 /// * `folder_path` - The path to the folder where canary files will be created.
 fn create_canary_files(folder_path: &str) {
-    // TODO: Implement canary file creation
+    let mut rng = rand::thread_rng();
+    let num_files = rng.gen_range(settings::MIN_CANARY_FILES..=settings::MAX_CANARY_FILES);
+
+    for _ in 0..num_files {
+        let name = settings::CANARY_FILE_NAMES
+            .get(rng.gen_range(0..settings::CANARY_FILE_NAMES.len()))
+            .unwrap();
+        let ext = settings::CANARY_FILE_EXTENSIONS
+            .get(rng.gen_range(0..settings::CANARY_FILE_EXTENSIONS.len()))
+            .unwrap();
+        let file_path = Path::new(folder_path).join(format!("{}.{}", name, ext));
+
+        let size = rng.gen_range(settings::MIN_CANARY_FILE_SIZE..=settings::MAX_CANARY_FILE_SIZE);
+        let mut data = vec![0u8; size];
+        rng.fill(&mut data[..]);
+
+        match File::create(&file_path) {
+            Ok(mut file) => {
+                if let Err(e) = file.write_all(&data) {
+                    log_message(&format!(
+                        "Failed to write to file {}: {}",
+                        file_path.display(),
+                        e
+                    ));
+                }
+            }
+            Err(e) => {
+                log_message(&format!(
+                    "Failed to create file {}: {}",
+                    file_path.display(),
+                    e
+                ));
+            }
+        }
+    }
     log_message(&format!(
-        "Folder {} is empty. Canary files will be created.",
-        folder_path
+        "Created {} canary files in {}.",
+        num_files, folder_path
     ));
 }
-
-
 
 /// Called when a modification is detected in a monitored folder.
 ///
 /// # Arguments
 ///
 /// * `foldername` - The name of the folder where the modification was detected.
-fn modification_detection(foldername: &str) {
+async fn modification_detection(foldername: &str) {
     println!("Modification detected in folder or file: {}", foldername);
+    notify_service(settings::SERVICE_URL, foldername).await;
 }
 
-pub fn handle_event(event: Event) {
+/// Handles a file system event.
+///
+/// This function is called when a file system event is received from the watcher.
+/// It iterates over the paths in the event and spawns a new Tokio task for each path
+/// to call `modification_detection` asynchronously.
+///
+/// # Arguments
+///
+/// * `event` - The file system event.
+pub async fn handle_event(event: Event) {
     for path in &event.paths {
         if let Some(folder_str) = path.to_str() {
-            modification_detection(folder_str);
+            let folder_str_clone = folder_str.to_string();
+            tokio::spawn(async move {
+                modification_detection(&folder_str_clone).await;
+            });
         }
     }
 }
