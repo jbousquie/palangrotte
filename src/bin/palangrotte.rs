@@ -62,9 +62,15 @@ async fn main() {
     let (tx, rx) = channel();
 
     let mut watcher: RecommendedWatcher = match Watcher::new(
-        move |res| {
+        move |res: Result<notify::Event, notify::Error>| {
             if let Ok(event) = res {
-                tx.send(event).unwrap();
+                if !matches!(event.kind, notify::event::EventKind::Access(_)) {
+                    if let Err(e) = tx.send(event) {
+                        let msg = format!("Failed to send event through channel: {}", e);
+                        log_message(&msg);
+                        eprintln!("{}", msg);
+                    }
+                }
             }
         },
         Default::default(),

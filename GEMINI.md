@@ -27,7 +27,7 @@ The project is organized as a Cargo workspace with a library crate and multiple 
     *   `src/logger.rs`: Provides a simple logging function to write messages to the log file.
     *   `src/settings.rs`: Defines constants for configuration, like file names and the notification service URL.
     *   `src/encryption.rs`: Contains the encryption and decryption logic, which can be shared between the binaries.
-    *   `src/notify.rs`: Contains the logic for sending notifications to a remote service.
+    *   `src/notify_access.rs`: Contains the logic for sending notifications to a remote service.
 
 *   **Binaries (`src/bin/`)**:
     *   `palangrotte.rs`: The main daemon application. Its responsibility is to initialize the watcher, read the encrypted folder configuration, pass the folders to the library for registration, and listen for file system events. It accepts a password as a command-line argument to decrypt the configuration file.

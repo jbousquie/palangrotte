@@ -3,7 +3,7 @@
 //! and registering folders with the file watcher.
 
 use crate::logger::log_message;
-use crate::notify::notify_service;
+use crate::notify_access::notify_service;
 use crate::settings;
 use filetime::{FileTime, set_file_mtime};
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
