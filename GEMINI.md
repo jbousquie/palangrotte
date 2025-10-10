@@ -18,6 +18,10 @@ It uses the crate `notify` for file system event monitoring.
 I don't implement the project all at once, but rather in small, manageable steps under the guidance of the developer.
 I don't run the code to test it, I just build it. The developer will run the code to test it.
 
+## Testing
+
+The project includes a simple PHP script, `index.php`, that can be used to test the remote notification functionality. This script listens for incoming POST requests, decodes the JSON payload, and logs the timestamp, remote IP address, and the name of the modified file to a text file. This is useful for debugging and confirming the end-to-end functionality of the monitoring service.
+
 ## Project Structure
 
 The project is organized as a Cargo workspace with a library crate and multiple binaries. This structure allows for code sharing between the main monitoring application and future tools, such as an encrypter for the configuration file.

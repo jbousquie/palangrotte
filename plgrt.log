@@ -93,3 +93,30 @@ Folder /home/jerome/test/canary2/toto is empty. Canary files will be created.
 [2025-10-10 11:04:57] Failed to send notification for file: /home/jerome/test/canary/titi/profils.png. Status: 404 Not Found
 [2025-10-10 11:04:57] Failed to send notification for file: /home/jerome/test/canary/titi/profils.png. Status: 404 Not Found
 [2025-10-10 11:04:57] Failed to send notification for file: /home/jerome/test/canary/titi/profils.png. Status: 404 Not Found
+[2025-10-10 14:43:38] Started monitoring folder /home/jerome/test/canary/toto.
+[2025-10-10 14:43:38] Started monitoring folder /home/jerome/test/canary/titi.
+[2025-10-10 14:43:38] Started monitoring folder /home/jerome/test/canary2/toto.
+[2025-10-10 14:44:21] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 14:47:11] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 14:48:01] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 14:49:15] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 14:51:38] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:08:06] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:10:15] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:14:55] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:15:48] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:16:54] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:18:59] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:19:20] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:20:31] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:21:14] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:21:45] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:23:22] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:23:49] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:24:32] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:24:56] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:25:31] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:26:28] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:27:48] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:28:47] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt
+[2025-10-10 15:29:49] Successfully sent notification for file: /home/jerome/test/canary/toto/documentation.txt

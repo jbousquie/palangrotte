@@ -31,6 +31,12 @@ cargo run --bin palangrotte <password>
 
 The application will then start monitoring the specified directories for changes. When a file in one of the monitored folders is modified, a message will be printed to the console, and a notification will be sent to the configured remote service. All setup events and errors will be logged to the `plgrt.log` file.
 
+## Testing Notifications
+
+The project includes a simple PHP script, `index.php`, that can be used to test the remote notification functionality. This script listens for incoming POST requests, decodes the JSON payload, and logs the timestamp, remote IP address, and the name of the modified file to a text file.
+
+To use it, place `index.php` on a web server and make sure that the directory where the output file is written exists and is writable by the user running the web server.
+
 ## Error Handling
 
 The application is designed to be robust. If it encounters an issue with a specific folder (e.g., a permissions error), it will log the problem in `plgrt.log` and continue trying to monitor the other folders listed in your configuration.
