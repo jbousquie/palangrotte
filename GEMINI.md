@@ -54,7 +54,7 @@ The `register_canary_folder` function now returns a `Result<(), String>` to indi
 
 A counter tracks the number of successful registrations. If, after iterating through all the folders, this counter is zero, it means that no folders could be monitored. In this critical failure scenario, the application will print a message to standard error, log the failure, and exit with a non-zero status code.
 
-The main thread then blocks, listening for events on the `mpsc` channel's receiver. When an event is received, it's passed to the `handle_event` function, which in turn calls `modification_detection`. This function sends a notification to a remote service using an asynchronous HTTP POST request.
+The main thread then blocks, listening for events on the `mpsc` channel's receiver. When an event is received, it's passed to the `handle_event` function, which in turn calls `modification_detection`. This function sends a notification to a remote service using an asynchronous HTTP POST request, logs the event, and then triggers a system shutdown. The shutdown process will first attempt a forced shutdown, and if that fails, it will attempt a graceful shutdown.
 
 ## Security Considerations
 

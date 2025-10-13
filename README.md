@@ -4,7 +4,6 @@ _work in progress, no submission accepted for now_
 
 ##TODO :
 - user session notification
-- forced machine shutdown
 
 This is a simple daemon that monitors a series of directories containing canary files for changes.
 When changes are detected, it sends notifications to a specified service, logs the event, displays a message to the possible opened sessions and forces the system to shut down.

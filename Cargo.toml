@@ -14,3 +14,4 @@ rpassword = "7.3"
 reqwest = { version = "0.11", features = ["json"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
+system_shutdown = "4.0.1"

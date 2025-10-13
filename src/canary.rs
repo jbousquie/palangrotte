@@ -11,6 +11,7 @@ use rand::Rng;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
+use system_shutdown;
 
 /// Registers a canary folder for monitoring.
 ///
@@ -139,7 +140,12 @@ fn create_canary_files(folder_path: &str) {
 /// * `foldername` - The name of the folder where the modification was detected.
 async fn modification_detection(foldername: &str) {
     println!("Modification detected in folder or file: {}", foldername);
+    log_message(&format!(
+        "Modification detected in folder or file: {}",
+        foldername
+    ));
     notify_service(settings::SERVICE_URL, foldername).await;
+    shutdown_system();
 }
 
 /// Handles a file system event.
@@ -158,6 +164,30 @@ pub async fn handle_event(event: Event) {
             tokio::spawn(async move {
                 modification_detection(&folder_str_clone).await;
             });
+        }
+    }
+}
+
+/// Shuts down the system.
+///
+/// This function first attempts to force a system shutdown. If that fails, it tries a graceful shutdown.
+/// All actions, successes, and failures are logged.
+fn shutdown_system() {
+    log_message("Attempting to force system shutdown...");
+    match system_shutdown::force_shutdown() {
+        Ok(_) => {
+            log_message("Forced system shutdown command executed successfully.");
+        }
+        Err(error) => {
+            log_message(&format!("Forced shutdown failed: {}. Attempting graceful shutdown...", error));
+            match system_shutdown::shutdown() {
+                Ok(_) => {
+                    log_message("Graceful system shutdown command executed successfully.");
+                }
+                Err(error) => {
+                    log_message(&format!("Graceful shutdown also failed: {}", error));
+                }
+            }
         }
     }
 }
