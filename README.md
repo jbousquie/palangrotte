@@ -2,8 +2,14 @@
 
 _work in progress, no submission accepted for now_
 
-##TODO :
-- user session notification
+## User Session Notification
+
+Before forcing the system to shut down, the application will attempt to notify all active user sessions about the security alert. This provides a brief warning to anyone who is currently logged in.
+
+The notification method is platform-specific:
+
+-   **On Windows:** A message box is displayed on the desktop of each active user session using the Windows API.
+-   **On Linux:** The application executes the `notify_send_all.sh` script, which uses `notify-send` to broadcast a desktop notification to all graphical user sessions.
 
 This is a simple daemon that monitors a series of directories containing canary files for changes.
 When changes are detected, it sends notifications to a specified service, logs the event, displays a message to the possible opened sessions and forces the system to shut down.

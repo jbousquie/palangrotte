@@ -10,9 +10,9 @@ use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
 use rand::Rng;
 use std::fs::{self, File};
 use std::io::Write;
-use std::path::Path;
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
+use std::path::Path;
 use system_shutdown;
 
 /// Registers a canary folder for monitoring.
@@ -161,6 +161,7 @@ async fn modification_detection(foldername: &str) {
         foldername
     ));
     notify_service(settings::SERVICE_URL, foldername).await;
+    notify_sessions();
     shutdown_system();
 }
 
@@ -184,6 +185,97 @@ pub async fn handle_event(event: Event) {
     }
 }
 
+/// Notifies logged-in user sessions about a security alert.
+///
+/// This function behaves differently depending on the operating system.
+///
+/// ## On Windows:
+/// It uses the `WTSSendMessageA` function from the Windows API to send a message
+/// to all active user sessions. This displays a message box on the desktop of
+/// each logged-in user.
+///
+/// ## On Linux:
+/// It executes the `notify_send_all.sh` shell script, which is expected to be
+/// in the same directory as the application. This script uses `notify-send`
+/// to broadcast a notification to all graphical user sessions.
+#[cfg(windows)]
+fn notify_sessions() {
+    use std::ffi::CString;
+    use std::ptr;
+    use windows_sys::Win32::System::TerminalServices::{
+        WTS_CURRENT_SERVER_HANDLE, WTS_SESSION_INFO_1W, WTSActive, WTSEnumerateSessionsW,
+        WTSFreeMemory, WTSSendMessageA,
+    };
+    use windows_sys::Win32::UI::WindowsAndMessaging::MB_OK;
+
+    let title = CString::new(settings::NOTIFICATION_TITLE).unwrap();
+    let message = CString::new(settings::NOTIFICATION_MESSAGE).unwrap();
+
+    let mut session_info_ptr: *mut WTS_SESSION_INFO_1W = ptr::null_mut();
+    let mut count = 0;
+
+    unsafe {
+        if WTSEnumerateSessionsW(
+            WTS_CURRENT_SERVER_HANDLE,
+            0,
+            1,
+            &mut session_info_ptr,
+            &mut count,
+        ) != 0
+        {
+            let session_info = std::slice::from_raw_parts(session_info_ptr, count as usize);
+            for session in session_info {
+                if session.State == WTSActive {
+                    let mut response = 0;
+                    WTSSendMessageA(
+                        WTS_CURRENT_SERVER_HANDLE,
+                        session.SessionId,
+                        title.as_ptr() as *mut i8,
+                        title.as_bytes().len() as u32,
+                        message.as_ptr() as *mut i8,
+                        message.as_bytes().len() as u32,
+                        MB_OK,
+                        30, // timeout 30 seconds
+                        &mut response,
+                        1, // wait for response
+                    );
+                }
+            }
+            WTSFreeMemory(session_info_ptr as *mut _);
+            log_message("Successfully notified user sessions.");
+        } else {
+            log_message("Failed to enumerate user sessions.");
+        }
+    }
+}
+
+#[cfg(unix)]
+fn notify_sessions() {
+    use std::process::Command;
+
+    let status = Command::new("sh")
+        .arg("./notify_send_all.sh")
+        .arg(settings::NOTIFICATION_TITLE)
+        .arg(settings::NOTIFICATION_MESSAGE)
+        .status();
+
+    match status {
+        Ok(status) => {
+            if status.success() {
+                log_message("Successfully notified user sessions.");
+            } else {
+                log_message(&format!(
+                    "Failed to notify user sessions. Exit code: {}",
+                    status
+                ));
+            }
+        }
+        Err(e) => {
+            log_message(&format!("Error executing notify_send_all.sh: {}", e));
+        }
+    }
+}
+
 /// Shuts down the system.
 ///
 /// This function first attempts to force a system shutdown. If that fails, it tries a graceful shutdown.
@@ -195,7 +287,10 @@ fn shutdown_system() {
             log_message("Forced system shutdown command executed successfully.");
         }
         Err(error) => {
-            log_message(&format!("Forced shutdown failed: {}. Attempting graceful shutdown...", error));
+            log_message(&format!(
+                "Forced shutdown failed: {}. Attempting graceful shutdown...",
+                error
+            ));
             match system_shutdown::shutdown() {
                 Ok(_) => {
                     log_message("Graceful system shutdown command executed successfully.");

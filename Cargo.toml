@@ -16,3 +16,5 @@ tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 system_shutdown = "4.0.1"
 
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.52", features = ["Win32_System_RemoteDesktop", "Win32_UI_WindowsAndMessaging"] }

@@ -1283,6 +1283,7 @@ dependencies = [
  "serde",
  "system_shutdown",
  "tokio",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]

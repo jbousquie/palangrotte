@@ -57,6 +57,8 @@ A counter tracks the number of successful registrations. If, after iterating thr
 
 The main thread then blocks, listening for events on the `mpsc` channel's receiver. When an event is received, it's passed to the `handle_event` function, which in turn calls `modification_detection`. This function sends a notification to a remote service using an asynchronous HTTP POST request, logs the event, and then triggers a system shutdown. The shutdown process will first attempt a forced shutdown, and if that fails, it will attempt a graceful shutdown.
 
+Before shutting down, the application will attempt to notify any active user sessions. On Windows, it uses the `WTSSendMessage` API to display a message box. On Linux, it executes a shell script (`notify_send_all.sh`) that uses `notify-send` to broadcast a desktop notification.
+
 ## Security Considerations
 
 The `notify` crate is excellent for detecting *that* a change occurred and *what* file was changed. However, due to limitations in the underlying OS APIs (e.g., inotify), it cannot determine *who* made the change (i.e., which process ID or user ID).

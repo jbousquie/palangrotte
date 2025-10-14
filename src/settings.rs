@@ -20,6 +20,9 @@ pub const CANARY_FILE_NAMES: &[&str] = &[
     "plans",
     "groupes",
     "autorisations",
+    "private",
+    "confidential",
+    "secret_keys",
 ];
 /// The canary file extensions
 pub const CANARY_FILE_EXTENSIONS: &[&str] = &["txt", "pdf", "docx", "xlsx", "pptx", "jpg", "png"];
@@ -31,3 +34,8 @@ pub const MAX_CANARY_FILES: usize = 5;
 pub const MIN_CANARY_FILE_SIZE: usize = 12 * 1024;
 /// The maximum size of a canary file in bytes.
 pub const MAX_CANARY_FILE_SIZE: usize = 120 * 1024;
+/// The title of the notification message.
+pub const NOTIFICATION_TITLE: &str = "Security Alert";
+/// The body of the notification message.
+pub const NOTIFICATION_MESSAGE: &str =
+    "A canary file has been modified. The system is shutting down.";
