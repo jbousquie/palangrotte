@@ -200,18 +200,26 @@ pub async fn handle_event(event: Event) {
 /// to broadcast a notification to all graphical user sessions.
 #[cfg(windows)]
 fn notify_sessions() {
-    use std::ffi::CString;
+    use std::ffi::OsStr;
+    use std::iter::once;
+    use std::os::windows::ffi::OsStrExt;
     use std::ptr;
     use windows_sys::Win32::System::RemoteDesktop::{
-        WTS_CURRENT_SERVER_HANDLE, WTS_SESSION_INFO_1W, WTSActive, WTSEnumerateSessionsW,
-        WTSFreeMemory, WTSSendMessageA,
+        WTS_CURRENT_SERVER_HANDLE, WTS_SESSION_INFOW, WTSActive, WTSEnumerateSessionsW,
+        WTSFreeMemory, WTSSendMessageW,
     };
     use windows_sys::Win32::UI::WindowsAndMessaging::MB_OK;
 
-    let title = CString::new(settings::NOTIFICATION_TITLE).unwrap();
-    let message = CString::new(settings::NOTIFICATION_MESSAGE).unwrap();
+    let title: Vec<u16> = OsStr::new(settings::NOTIFICATION_TITLE)
+        .encode_wide()
+        .chain(once(0))
+        .collect();
+    let message: Vec<u16> = OsStr::new(settings::NOTIFICATION_MESSAGE)
+        .encode_wide()
+        .chain(once(0))
+        .collect();
 
-    let mut session_info_ptr: *mut WTS_SESSION_INFO_1W = ptr::null_mut();
+    let mut session_info_ptr: *mut WTS_SESSION_INFOW = ptr::null_mut();
     let mut count = 0;
 
     unsafe {
@@ -227,13 +235,13 @@ fn notify_sessions() {
             for session in session_info {
                 if session.State == WTSActive {
                     let mut response = 0;
-                    WTSSendMessageA(
+                    WTSSendMessageW(
                         WTS_CURRENT_SERVER_HANDLE,
                         session.SessionId,
-                        title.as_ptr() as *mut i8,
-                        title.as_bytes().len() as u32,
-                        message.as_ptr() as *mut i8,
-                        message.as_bytes().len() as u32,
+                        title.as_ptr() as *mut _,
+                        (title.len() - 1) as u32 * 2,
+                        message.as_ptr() as *mut _,
+                        (message.len() - 1) as u32 * 2,
                         MB_OK,
                         30, // timeout 30 seconds
                         &mut response,
