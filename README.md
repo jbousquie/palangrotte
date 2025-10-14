@@ -24,6 +24,35 @@ If a directory specified in `folders.enc` doesn't exist, the application will cr
 If a directory is empty, the application will populate it with canary files.
 If a directory is not readable or writable, it will be skipped, and an error will be logged in `plgrt.log`.
 
+## Permissions Strategy for Malware Detection
+
+To maximize the chances of detecting malware, the folders containing canary files should be as accessible as possible. This strategy makes it trivial for malicious software, which may be running with low privileges, to access and modify a canary file, thereby triggering an alert.
+
+It is highly recommended to set open permissions on the directories you intend to monitor *before* running the application. If you specify directories that do not yet exist, you should set these permissions on the parent directory, so the newly created canary folders inherit them.
+
+**On Windows:**
+
+Windows has a powerful permission inheritance model. By granting full access to the "Everyone" group on a canary folder, you ensure that all files and subfolders created within it will be fully accessible. Use the `icacls` command to apply these permissions recursively:
+
+```bash
+icacls "C:\path\to\your\canary\folder" /grant Everyone:(F) /t
+```
+This command grants Full control `(F)` to `Everyone` and applies it to all files and subdirectories `/t`.
+
+**On Linux:**
+
+On Linux, you can set wide-open permissions on the folder. The application itself will ensure that the canary files it creates are world-writable (`0o666`).
+
+```bash
+chmod 777 /path/to/your/canary/folder
+```
+
+By adopting this open-permission strategy, you lower the bar for interaction, turning the canary files into an effective tripwire for unauthorized system activity.
+
+## File Permissions
+
+On Linux, the canary files are created with write permissions for all users. This is to ensure that the monitoring service can detect modifications made by any user. On Windows, the default file permissions are used.
+
 ## Usage
 
 To use the application, you first need to create the encrypted `folders.enc` file. Once you have the encrypted configuration file, you can run the application using the following command, providing the password as a command-line argument:

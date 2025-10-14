@@ -45,9 +45,10 @@ The `main` function is asynchronous, using the `tokio` runtime. It takes a passw
 
 The `register_canary_folder` function performs the following steps:
 1.  Checks if a folder exists. If not, it creates it.
-2.  If the folder exists, it iterates through its contents.
-3.  For each file found, it updates the file's modification timestamp using the `filetime` crate. This is done to create a baseline.
-4.  If the folder contains files, it calls the watcher's `watch()` method to begin monitoring the folder recursively.
+2.  If a folder is newly created or found to be empty, it calls the `create_canary_files` function to populate it with randomly generated files.
+    *   On Linux, these canary files are made world-writable (`0o666`) to ensure that modifications by any user can be detected. On Windows, default permissions are used.
+3.  If the folder already contains files, it iterates through them and updates their modification timestamps to create a baseline for monitoring.
+4.  Finally, it calls the watcher's `watch()` method to begin monitoring the folder recursively.
 
 ### Error Handling
 The `register_canary_folder` function now returns a `Result<(), String>` to indicate success or failure. The main loop in `palangrotte.rs` iterates through the folders and attempts to register each one. If a registration fails, the error is logged.

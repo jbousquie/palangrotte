@@ -11,6 +11,8 @@ use rand::Rng;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 use system_shutdown;
 
 /// Registers a canary folder for monitoring.
@@ -116,6 +118,20 @@ fn create_canary_files(folder_path: &str) {
                         file_path.display(),
                         e
                     ));
+                }
+
+                #[cfg(unix)]
+                {
+                    // On Unix-like systems, make the canary files writable for all users.
+                    // This ensures that the monitoring service can detect modifications made by any user.
+                    use std::fs::Permissions;
+                    if let Err(e) = fs::set_permissions(&file_path, Permissions::from_mode(0o666)) {
+                        log_message(&format!(
+                            "Failed to set permissions for file {}: {}",
+                            file_path.display(),
+                            e
+                        ));
+                    }
                 }
             }
             Err(e) => {
