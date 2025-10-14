@@ -1,4 +1,10 @@
-#!/usr/bin/env sh
+//! # Linux Notification Script
+//!
+//! This module contains the embedded shell script for sending notifications to all logged-in GUI users on Linux.
+//! This avoids the need to distribute a separate script file with the binary.
+
+/// Shell script content for notifying all users.
+pub const NOTIFY_SCRIPT: &str = r#"#!/usr/bin/env sh
 #
 # MIT License
 #
@@ -40,13 +46,13 @@ display_help() {
 
 while [ $# -gt 0 ]; do
     case $1 in
-        -h | --help)
+        -h | --help) 
             display_help
             exit 1
-            ;;
+            ;; 
         *)
             break
-            ;;
+            ;; 
     esac
 done
 
@@ -62,3 +68,4 @@ for SOME_USER in /run/user/*; do
 done
 
 exit 0
+"#;

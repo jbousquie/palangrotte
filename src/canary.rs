@@ -259,10 +259,13 @@ fn notify_sessions() {
 
 #[cfg(unix)]
 fn notify_sessions() {
+    use crate::linux_notification::NOTIFY_SCRIPT;
     use std::process::Command;
 
     let status = Command::new("sh")
-        .arg("./notify_send_all.sh")
+        .arg("-c")
+        .arg(NOTIFY_SCRIPT)
+        .arg("notify-send-all") // This is $0 for the script
         .arg(settings::NOTIFICATION_TITLE)
         .arg(settings::NOTIFICATION_MESSAGE)
         .status();
@@ -279,7 +282,7 @@ fn notify_sessions() {
             }
         }
         Err(e) => {
-            log_message(&format!("Error executing notify_send_all.sh: {}", e));
+            log_message(&format!("Error executing embedded notify script: {}", e));
         }
     }
 }

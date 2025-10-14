@@ -7,3 +7,4 @@ pub mod logger;
 pub mod settings;
 pub mod encryption;
 pub mod notify_access;
+pub mod linux_notification;

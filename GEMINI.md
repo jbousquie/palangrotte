@@ -32,6 +32,7 @@ The project is organized as a Cargo workspace with a library crate and multiple 
     *   `src/settings.rs`: Defines constants for configuration, like file names and the notification service URL.
     *   `src/encryption.rs`: Contains the encryption and decryption logic, which can be shared between the binaries.
     *   `src/notify_access.rs`: Contains the logic for sending notifications to a remote service.
+    *   `src/linux_notification.rs`: Contains the embedded shell script for Linux desktop notifications.
 
 *   **Binaries (`src/bin/`)**:
     *   `palangrotte.rs`: The main daemon application. Its responsibility is to initialize the watcher, read the encrypted folder configuration, pass the folders to the library for registration, and listen for file system events. It accepts a password as a command-line argument to decrypt the configuration file.
@@ -57,7 +58,7 @@ A counter tracks the number of successful registrations. If, after iterating thr
 
 The main thread then blocks, listening for events on the `mpsc` channel's receiver. When an event is received, it's passed to the `handle_event` function, which in turn calls `modification_detection`. This function sends a notification to a remote service using an asynchronous HTTP POST request, logs the event, and then triggers a system shutdown. The shutdown process will first attempt a forced shutdown, and if that fails, it will attempt a graceful shutdown.
 
-Before shutting down, the application will attempt to notify any active user sessions. On Windows, it uses the `WTSSendMessage` API to display a message box. On Linux, it executes a shell script (`notify_send_all.sh`) that uses `notify-send` to broadcast a desktop notification.
+Before shutting down, the application will attempt to notify any active user sessions. On Windows, it uses the `WTSSendMessage` API to display a message box. On Linux, it executes an embedded shell script that uses `notify-send` to broadcast a desktop notification, ensuring the application is a self-contained binary.
 
 ## Security Considerations
 

@@ -2,18 +2,13 @@
 
 _work in progress, no submission accepted for now_
 
-## User Session Notification
-
-Before forcing the system to shut down, the application will attempt to notify all active user sessions about the security alert. This provides a brief warning to anyone who is currently logged in.
-
-The notification method is platform-specific:
-
--   **On Windows:** A message box is displayed on the desktop of each active user session using the Windows API.
--   **On Linux:** The application executes the `notify_send_all.sh` script, which uses `notify-send` to broadcast a desktop notification to all graphical user sessions.
 
 This is a simple daemon that monitors a series of directories containing canary files for changes.
+
 When changes are detected, it sends notifications to a specified service, logs the event, displays a message to the possible opened sessions and forces the system to shut down.
+
 The project is intended to be used in a production environment on Windows, although it can also be used on Linux. It's designed to be run as a service and to work in the user-space.
+
 It uses the crate `notify` for file system event monitoring.
 
 ## Configuration
@@ -26,9 +21,9 @@ First, create a plain text file (e.g., `folders.txt`) with the absolute path of 
 cargo run --bin encrypter encrypt folders.txt folders.enc
 ```
 
-If a directory specified in `folders.enc` doesn't exist, the application will create it.
-If a directory is empty, the application will populate it with canary files.
-If a directory is not readable or writable, it will be skipped, and an error will be logged in `plgrt.log`.
+- If a directory specified in `folders.enc` doesn't exist, the application will create it.
+- If a directory is empty, the application will populate it with canary files.
+- If a directory is not readable or writable, it will be skipped, and an error will be logged in `plgrt.log`.
 
 ## Permissions Strategy for Malware Detection
 
@@ -104,3 +99,12 @@ cargo run --bin encrypter decrypt <input_file> <output_file>
 ```
 
 The tool will prompt you for the password to decrypt the file.
+
+## User Session Notification
+
+Before forcing the system to shut down, the application will attempt to notify all active user sessions about the security alert. This provides a brief warning to anyone who is currently logged in.
+
+The notification method is platform-specific:
+
+-   **On Windows:** A message box is displayed on the desktop of each active user session using the Windows API.
+-   **On Linux:** The application executes the embedded `notify_send_all.sh` script, to broadcast a desktop notification to all graphical user sessions. Credits [https://github.com/tonywalker1/notify-send-all]
