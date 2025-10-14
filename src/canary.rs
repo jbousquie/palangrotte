@@ -202,7 +202,7 @@ pub async fn handle_event(event: Event) {
 fn notify_sessions() {
     use std::ffi::CString;
     use std::ptr;
-    use windows_sys::Win32::System::TerminalServices::{
+    use windows_sys::Win32::System::RemoteDesktop::{
         WTS_CURRENT_SERVER_HANDLE, WTS_SESSION_INFO_1W, WTSActive, WTSEnumerateSessionsW,
         WTSFreeMemory, WTSSendMessageA,
     };
