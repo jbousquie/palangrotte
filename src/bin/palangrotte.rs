@@ -67,7 +67,10 @@ async fn main() {
     let mut watcher: RecommendedWatcher = match Watcher::new(
         move |res: Result<notify::Event, notify::Error>| {
             if let Ok(event) = res {
-                if !matches!(event.kind, notify::event::EventKind::Access(_)) {
+                if matches!(
+                    event.kind,
+                    notify::event::EventKind::Modify(_) | notify::event::EventKind::Remove(_)
+                ) {
                     if let Err(e) = tx.send((event, Arc::clone(&settings_clone))) {
                         let msg = format!("Failed to send event through channel: {}", e);
                         log_message(&settings_clone.log_file, &msg);

@@ -3,9 +3,9 @@
 _work in progress, no submission accepted for now_
 
 
-This is a simple daemon that monitors a series of directories containing canary files for changes.
+This is a simple daemon that monitors a series of directories containing canary files for modification or removal.
 
-When changes are detected, it sends notifications to a specified service, logs the event, displays a message to the possible opened sessions (requires libnotify-bin on Linux) and forces the system to shut down.
+When such changes are detected, it sends notifications to a specified service, logs the event, displays a message to the possible opened sessions (requires libnotify-bin on Linux) and forces the system to shut down.
 
 The project is intended to be used in a production environment on Windows, although it can also be used on Linux. It's designed to be run as a service and to work in the user-space.
 
@@ -64,7 +64,22 @@ To use the application, you first need to create the encrypted `folders.enc` fil
 cargo run --bin palangrotte
 ```
 
-The application will then start monitoring the specified directories for changes. When a file in one of the monitored folders is modified, a message will be printed to the console, and a notification will be sent to the configured remote service. All setup events and errors will be logged.
+The application will then start monitoring the specified directories for changes. When a file in one of the monitored folders is modified or removed, a message will be printed to the console, and a notification will be sent to the configured remote service. All setup events and errors will be logged.
+
+## Monitoring Process
+
+The core of the application is its file monitoring capability, which is handled by the [`notify`](https://crates.io/crates/notify) crate. Here's how it works:
+
+1.  **Initialization**: When the application starts, it reads the list of directories to monitor from your encrypted configuration file.
+2.  **Baselining**: For each directory, the application establishes a baseline. If the directory is empty, it's populated with new canary files. If files already exist, the application updates their modification timestamps. This ensures that the monitor only triggers on changes that occur *after* it has started.
+3.  **Recursive Watching**: Each specified directory is monitored **recursively**, meaning any changes to files within the directory or in any of its subdirectories will be detected.
+4.  **Event Detection**: The application watches for specific filesystem events, primarily file modifications and removals. When one of these events is detected within a monitored directory, the alert and shutdown sequence is triggered.
+
+### Security Note: Identifying the Source of Changes
+
+It's important to understand that while Palangrotte can tell you *what* file was changed and *when*, it cannot determine *who* (which user or process) made the change. This is a limitation of the underlying filesystem notification APIs used by the `notify` crate.
+
+For a comprehensive security setup, it is highly recommended to use Palangrotte in conjunction with your operating system's native auditing tools. On Linux, the **Linux Audit Daemon (`auditd`)** is the standard for this. By correlating the real-time alert from Palangrotte with the detailed logs from `auditd`, you can pinpoint the exact user, process, and command responsible for the modification.
 
 ## Testing Notifications
 
