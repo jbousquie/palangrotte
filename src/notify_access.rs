@@ -18,7 +18,7 @@ struct Notification<'a> {
 ///
 /// * `url` - The URL to send the notification to.
 /// * `file_name` - The name of the modified file or folder.
-pub async fn notify_service(url: &str, file_name: &str) {
+pub async fn notify_service(url: &str, file_name: &str, log_file: &str) {
     let client = reqwest::Client::new();
     let notification = Notification { file: file_name };
 
@@ -26,14 +26,14 @@ pub async fn notify_service(url: &str, file_name: &str) {
         Ok(response) => {
             if response.status().is_success() {
                 let msg = format!("Successfully sent notification for file: {}", file_name);
-                log_message(&msg);
+                log_message(log_file, &msg);
             } else {
                 let msg = format!(
                     "Failed to send notification for file: {}. Status: {}",
                     file_name,
                     response.status()
                 );
-                log_message(&msg);
+                log_message(log_file, &msg);
             }
         }
         Err(e) => {
@@ -41,7 +41,7 @@ pub async fn notify_service(url: &str, file_name: &str) {
                 "Failed to send notification for file: {}. Error: {}",
                 file_name, e
             );
-            log_message(&msg);
+            log_message(log_file, &msg);
         }
     }
 }

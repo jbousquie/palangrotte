@@ -5,7 +5,7 @@ _work in progress, no submission accepted for now_
 
 This is a simple daemon that monitors a series of directories containing canary files for changes.
 
-When changes are detected, it sends notifications to a specified service, logs the event, displays a message to the possible opened sessions and forces the system to shut down.
+When changes are detected, it sends notifications to a specified service, logs the event, displays a message to the possible opened sessions (requires libnotify-bin on Linux) and forces the system to shut down.
 
 The project is intended to be used in a production environment on Windows, although it can also be used on Linux. It's designed to be run as a service and to work in the user-space.
 
@@ -13,17 +13,19 @@ It uses the crate `notify` for file system event monitoring.
 
 ## Configuration
 
-The directories to be monitored are specified in an encrypted file named `folders.enc`. You can create and encrypt this file using the `encrypter` utility.
+The application is configured through the `palangrotte.toml` file. This file allows you to customize various parameters, including the location of the log file, the URL for notifications, and the names and sizes of the canary files.
 
-First, create a plain text file (e.g., `folders.txt`) with the absolute path of each directory you want to monitor on a new line. Then, use the `encrypter` to encrypt it:
+The directories to be monitored are specified in an encrypted file, by default `folders.enc`. The password for decrypting this file is also set in `palangrotte.toml` via the `keyword` parameter.
+
+You can create and encrypt the folders file using the `encrypter` utility. First, create a plain text file (e.g., `folders.txt`) with the absolute path of each directory you want to monitor on a new line. Then, use the `encrypter` to encrypt it:
 
 ```bash
 cargo run --bin encrypter encrypt folders.txt folders.enc
 ```
 
 - If a directory specified in `folders.enc` doesn't exist, the application will create it.
-- If a directory is empty, the application will populate it with canary files.
-- If a directory is not readable or writable, it will be skipped, and an error will be logged in `plgrt.log`.
+- If a directory is empty, the application will populate it with canary files based on the settings in `palangrotte.toml`.
+- If a directory is not readable or writable, it will be skipped, and an error will be logged.
 
 ## Permissions Strategy for Malware Detection
 
@@ -56,13 +58,13 @@ On Linux, the canary files are created with write permissions for all users. Thi
 
 ## Usage
 
-To use the application, you first need to create the encrypted `folders.enc` file. Once you have the encrypted configuration file, you can run the application using the following command, providing the password as a command-line argument:
+To use the application, you first need to create the encrypted `folders.enc` file and configure your `palangrotte.toml`. Once the configuration is ready, you can run the application:
 
 ```bash
-cargo run --bin palangrotte <password>
+cargo run --bin palangrotte
 ```
 
-The application will then start monitoring the specified directories for changes. When a file in one of the monitored folders is modified, a message will be printed to the console, and a notification will be sent to the configured remote service. All setup events and errors will be logged to the `plgrt.log` file.
+The application will then start monitoring the specified directories for changes. When a file in one of the monitored folders is modified, a message will be printed to the console, and a notification will be sent to the configured remote service. All setup events and errors will be logged.
 
 ## Testing Notifications
 

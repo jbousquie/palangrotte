@@ -1,0 +1,36 @@
+# the path to the encrypted file containing the folders to monitor
+folders_file = "folders.enc"
+# the path to the Palangrotte log file
+log_file = "plgrt.log"
+# the key string used to encrypt and decrypt the folders file
+keyword = "mustuflux"
+# The URL of the remote service monitoring the Palangrotte detections
+service_url = "https://jerome.bousquie.fr/palangrotte/index.php"
+# The possible values for the canary file names
+canary_file_names = [
+    "passwords",
+    "documentation",
+    "factures",
+    "confidentiel",
+    "profils",
+    "budget",
+    "personnel",
+    "secret",
+    "plans",
+    "groupes",
+    "autorisations",
+    "private",
+    "confidential",
+    "secret_keys",
+]
+# The possible values for the canary file extensions
+canary_file_extensions = ["txt", "pdf", "docx", "xlsx", "pptx", "jpg", "png"]
+# The minimum and maximum number of canary files to be created in an empty folder
+min_canary_files = 2
+max_canary_files = 5
+# The minimum and maximum size of canary files to be created in an empty folder
+min_canary_file_size = 12288
+max_canary_file_size = 122880
+# The user desktop notification title and message to be displayed before the system shuts down
+notification_title = "Security Alert"
+notification_message = "A canary file has been modified. The system is shutting down."

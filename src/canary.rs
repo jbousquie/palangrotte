@@ -4,8 +4,9 @@
 
 use crate::logger::log_message;
 use crate::notify_access::notify_service;
-use crate::settings;
-use filetime::{FileTime, set_file_mtime};
+use std::sync::Arc;
+use crate::settings::Settings;
+use filetime::{set_file_mtime, FileTime};
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
 use rand::Rng;
 use std::fs::{self, File};
@@ -24,6 +25,7 @@ use system_shutdown;
 ///
 /// * `folder_path` - The path to the canary folder.
 /// * `watcher` - A mutable reference to the file watcher.
+/// * `settings` - The application settings.
 ///
 /// # Returns
 ///
@@ -32,16 +34,15 @@ use system_shutdown;
 pub fn register_canary_folder(
     folder_path: &str,
     watcher: &mut RecommendedWatcher,
+    settings: &Settings,
 ) -> Result<(), String> {
     let path = Path::new(folder_path);
     if !path.exists() {
         match fs::create_dir_all(path) {
             Ok(_) => {
-                log_message(&format!("Folder {} created successfully.", folder_path));
-                create_canary_files(folder_path);
-                // A newly created folder is empty, so we don't start monitoring yet.
-                // We can consider this a "successful" registration for now,
-                // as the folder is ready to be filled with canary files.
+                let msg = format!("Folder {} created successfully.", folder_path);
+                log_message(&settings.log_file, &msg);
+                create_canary_files(folder_path, settings);
                 return Ok(());
             }
             Err(e) => {
@@ -61,18 +62,20 @@ pub fn register_canary_folder(
                         has_files = true;
                         // Touch the file
                         if let Err(e) = set_file_mtime(&path, FileTime::now()) {
-                            log_message(&format!("Failed to touch file {}: {}", path.display(), e));
+                            let msg = format!("Failed to touch file {}: {}", path.display(), e);
+                            log_message(&settings.log_file, &msg);
                         }
                     }
                 }
             }
             if !has_files {
-                create_canary_files(folder_path);
+                create_canary_files(folder_path, settings);
             }
             // Now there are files, start monitoring
             match watcher.watch(path, RecursiveMode::Recursive) {
                 Ok(_) => {
-                    log_message(&format!("Started monitoring folder {}.", folder_path));
+                    let msg = format!("Started monitoring folder {}.", folder_path);
+                    log_message(&settings.log_file, &msg);
                     Ok(())
                 }
                 Err(e) => Err(format!(
@@ -93,60 +96,54 @@ pub fn register_canary_folder(
 /// # Arguments
 ///
 /// * `folder_path` - The path to the folder where canary files will be created.
-fn create_canary_files(folder_path: &str) {
+/// * `settings` - The application settings.
+fn create_canary_files(folder_path: &str, settings: &Settings) {
     let mut rng = rand::thread_rng();
-    let num_files = rng.gen_range(settings::MIN_CANARY_FILES..=settings::MAX_CANARY_FILES);
+    let num_files = rng.gen_range(settings.min_canary_files..=settings.max_canary_files);
 
     for _ in 0..num_files {
-        let name = settings::CANARY_FILE_NAMES
-            .get(rng.gen_range(0..settings::CANARY_FILE_NAMES.len()))
+        let name = settings
+            .canary_file_names
+            .get(rng.gen_range(0..settings.canary_file_names.len()))
             .unwrap();
-        let ext = settings::CANARY_FILE_EXTENSIONS
-            .get(rng.gen_range(0..settings::CANARY_FILE_EXTENSIONS.len()))
+        let ext = settings
+            .canary_file_extensions
+            .get(rng.gen_range(0..settings.canary_file_extensions.len()))
             .unwrap();
         let file_path = Path::new(folder_path).join(format!("{}.{}", name, ext));
 
-        let size = rng.gen_range(settings::MIN_CANARY_FILE_SIZE..=settings::MAX_CANARY_FILE_SIZE);
-        let mut data = vec![0u8; size];
+        let size = rng.gen_range(settings.min_canary_file_size..=settings.max_canary_file_size);
+        let mut data = vec![0u8; size.try_into().unwrap()];
         rng.fill(&mut data[..]);
 
         match File::create(&file_path) {
             Ok(mut file) => {
                 if let Err(e) = file.write_all(&data) {
-                    log_message(&format!(
-                        "Failed to write to file {}: {}",
-                        file_path.display(),
-                        e
-                    ));
+                    let msg = format!("Failed to write to file {}: {}", file_path.display(), e);
+                    log_message(&settings.log_file, &msg);
                 }
 
                 #[cfg(unix)]
                 {
-                    // On Unix-like systems, make the canary files writable for all users.
-                    // This ensures that the monitoring service can detect modifications made by any user.
                     use std::fs::Permissions;
                     if let Err(e) = fs::set_permissions(&file_path, Permissions::from_mode(0o666)) {
-                        log_message(&format!(
+                        let msg = format!(
                             "Failed to set permissions for file {}: {}",
                             file_path.display(),
                             e
-                        ));
+                        );
+                        log_message(&settings.log_file, &msg);
                     }
                 }
             }
             Err(e) => {
-                log_message(&format!(
-                    "Failed to create file {}: {}",
-                    file_path.display(),
-                    e
-                ));
+                let msg = format!("Failed to create file {}: {}", file_path.display(), e);
+                log_message(&settings.log_file, &msg);
             }
         }
     }
-    log_message(&format!(
-        "Created {} canary files in {}.",
-        num_files, folder_path
-    ));
+    let msg = format!("Created {} canary files in {}.", num_files, folder_path);
+    log_message(&settings.log_file, &msg);
 }
 
 /// Called when a modification is detected in a monitored folder.
@@ -154,15 +151,14 @@ fn create_canary_files(folder_path: &str) {
 /// # Arguments
 ///
 /// * `foldername` - The name of the folder where the modification was detected.
-async fn modification_detection(foldername: &str) {
+/// * `settings` - The application settings.
+async fn modification_detection(foldername: &str, settings: &Settings) {
     println!("Modification detected in folder or file: {}", foldername);
-    log_message(&format!(
-        "Modification detected in folder or file: {}",
-        foldername
-    ));
-    notify_service(settings::SERVICE_URL, foldername).await;
-    notify_sessions();
-    shutdown_system();
+    let msg = format!("Modification detected in folder or file: {}", foldername);
+    log_message(&settings.log_file, &msg);
+    notify_service(&settings.service_url, foldername, &settings.log_file).await;
+    notify_sessions(settings);
+    shutdown_system(settings);
 }
 
 /// Handles a file system event.
@@ -174,12 +170,14 @@ async fn modification_detection(foldername: &str) {
 /// # Arguments
 ///
 /// * `event` - The file system event.
-pub async fn handle_event(event: Event) {
+/// * `settings` - The application settings.
+pub async fn handle_event(event: Event, settings: Arc<Settings>) {
     for path in &event.paths {
         if let Some(folder_str) = path.to_str() {
             let folder_str_clone = folder_str.to_string();
+            let settings_clone = Arc::clone(&settings);
             tokio::spawn(async move {
-                modification_detection(&folder_str_clone).await;
+                modification_detection(&folder_str_clone, &settings_clone).await;
             });
         }
     }
@@ -187,19 +185,11 @@ pub async fn handle_event(event: Event) {
 
 /// Notifies logged-in user sessions about a security alert.
 ///
-/// This function behaves differently depending on the operating system.
+/// # Arguments
 ///
-/// ## On Windows:
-/// It uses the `WTSSendMessageA` function from the Windows API to send a message
-/// to all active user sessions. This displays a message box on the desktop of
-/// each logged-in user.
-///
-/// ## On Linux:
-/// It executes the `notify_send_all.sh` shell script, which is expected to be
-/// in the same directory as the application. This script uses `notify-send`
-/// to broadcast a notification to all graphical user sessions.
+/// * `settings` - The application settings.
 #[cfg(windows)]
-fn notify_sessions() {
+fn notify_sessions(settings: &Settings) {
     use std::ffi::OsStr;
     use std::iter::once;
     use std::os::windows::ffi::OsStrExt;
@@ -210,11 +200,11 @@ fn notify_sessions() {
     };
     use windows_sys::Win32::UI::WindowsAndMessaging::MB_OK;
 
-    let title: Vec<u16> = OsStr::new(settings::NOTIFICATION_TITLE)
+    let title: Vec<u16> = OsStr::new(&settings.notification_title)
         .encode_wide()
         .chain(once(0))
         .collect();
-    let message: Vec<u16> = OsStr::new(settings::NOTIFICATION_MESSAGE)
+    let message: Vec<u16> = OsStr::new(&settings.notification_message)
         .encode_wide()
         .chain(once(0))
         .collect();
@@ -250,15 +240,15 @@ fn notify_sessions() {
                 }
             }
             WTSFreeMemory(session_info_ptr as *mut _);
-            log_message("Successfully notified user sessions.");
+            log_message(&settings.log_file, "Successfully notified user sessions.");
         } else {
-            log_message("Failed to enumerate user sessions.");
+            log_message(&settings.log_file, "Failed to enumerate user sessions.");
         }
     }
 }
 
 #[cfg(unix)]
-fn notify_sessions() {
+fn notify_sessions(settings: &Settings) {
     use crate::linux_notification::NOTIFY_SCRIPT;
     use std::process::Command;
 
@@ -266,48 +256,59 @@ fn notify_sessions() {
         .arg("-c")
         .arg(NOTIFY_SCRIPT)
         .arg("notify-send-all") // This is $0 for the script
-        .arg(settings::NOTIFICATION_TITLE)
-        .arg(settings::NOTIFICATION_MESSAGE)
+        .arg(&settings.notification_title)
+        .arg(&settings.notification_message)
         .status();
 
     match status {
         Ok(status) => {
             if status.success() {
-                log_message("Successfully notified user sessions.");
+                log_message(&settings.log_file, "Successfully notified user sessions.");
             } else {
-                log_message(&format!(
+                let msg = format!(
                     "Failed to notify user sessions. Exit code: {}",
                     status
-                ));
+                );
+                log_message(&settings.log_file, &msg);
             }
         }
         Err(e) => {
-            log_message(&format!("Error executing embedded notify script: {}", e));
+            let msg = format!("Error executing embedded notify script: {}", e);
+            log_message(&settings.log_file, &msg);
         }
     }
 }
 
 /// Shuts down the system.
 ///
-/// This function first attempts to force a system shutdown. If that fails, it tries a graceful shutdown.
-/// All actions, successes, and failures are logged.
-fn shutdown_system() {
-    log_message("Attempting to force system shutdown...");
+/// # Arguments
+///
+/// * `settings` - The application settings.
+fn shutdown_system(settings: &Settings) {
+    log_message(&settings.log_file, "Attempting to force system shutdown...");
     match system_shutdown::force_shutdown() {
         Ok(_) => {
-            log_message("Forced system shutdown command executed successfully.");
+            log_message(
+                &settings.log_file,
+                "Forced system shutdown command executed successfully.",
+            );
         }
         Err(error) => {
-            log_message(&format!(
+            let msg = format!(
                 "Forced shutdown failed: {}. Attempting graceful shutdown...",
                 error
-            ));
+            );
+            log_message(&settings.log_file, &msg);
             match system_shutdown::shutdown() {
                 Ok(_) => {
-                    log_message("Graceful system shutdown command executed successfully.");
+                    log_message(
+                        &settings.log_file,
+                        "Graceful system shutdown command executed successfully.",
+                    );
                 }
                 Err(error) => {
-                    log_message(&format!("Graceful shutdown also failed: {}", error));
+                    let msg = format!("Graceful shutdown also failed: {}", error);
+                    log_message(&settings.log_file, &msg);
                 }
             }
         }

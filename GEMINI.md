@@ -29,20 +29,20 @@ The project is organized as a Cargo workspace with a library crate and multiple 
 *   **Library (`src/lib.rs`)**: This is the core of the project, containing all the shared logic.
     *   `src/canary.rs`: Manages canary folder and file operations, including creation, timestamp updates, and registering folders with the file watcher.
     *   `src/logger.rs`: Provides a simple logging function to write messages to the log file.
-    *   `src/settings.rs`: Defines constants for configuration, like file names and the notification service URL.
+    *   `src/settings.rs`: Defines the `Settings` struct and loads configuration from `palangrotte.toml`.
     *   `src/encryption.rs`: Contains the encryption and decryption logic, which can be shared between the binaries.
     *   `src/notify_access.rs`: Contains the logic for sending notifications to a remote service.
     *   `src/linux_notification.rs`: Contains the embedded shell script for Linux desktop notifications.
 
 *   **Binaries (`src/bin/`)**:
-    *   `palangrotte.rs`: The main daemon application. Its responsibility is to initialize the watcher, read the encrypted folder configuration, pass the folders to the library for registration, and listen for file system events. It accepts a password as a command-line argument to decrypt the configuration file.
+    *   `palangrotte.rs`: The main daemon application. Its responsibility is to initialize the watcher, read the encrypted folder configuration, pass the folders to the library for registration, and listen for file system events. It loads all configuration, including the decryption password, from `palangrotte.toml`.
     *   `encrypter.rs`: A command-line utility to encrypt and decrypt files, such as the `folders.txt` configuration file. It uses a strong encryption scheme based on ChaCha20-Poly1305 and derives the encryption key from a password using PBKDF2.
 
 ## Core Implementation
 
 The `palangrotte` binary initializes a `RecommendedWatcher` from the `notify` crate. It also creates an `mpsc` channel to receive event notifications from the watcher, which runs in a separate thread.
 
-The `main` function is asynchronous, using the `tokio` runtime. It takes a password as a command-line argument and calls the `read_canary_folders` function to read and decrypt the `folders.enc` file. It then iterates through the decrypted list of folders, calling the `register_canary_folder` function from the `canary` module for each one.
+The `main` function is asynchronous, using the `tokio` runtime. It loads the application settings from `palangrotte.toml` and then calls the `read_canary_folders` function to read and decrypt the `folders.enc` file using the `keyword` from the settings. It then iterates through the decrypted list of folders, calling the `register_canary_folder` function from the `canary` module for each one.
 
 The `register_canary_folder` function performs the following steps:
 1.  Checks if a folder exists. If not, it creates it.
